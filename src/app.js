@@ -7,10 +7,9 @@ import joi from "joi"
 
 dotenv.config()
 
-//const DATABASE_URL = "mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb";
-const server = express();
-server.use(cors());
-server.use(express.json());
+const app = express();
+app.use(cors());
+app.use(express.json());
 //const users = [];
 const Joi = joi
 
@@ -30,7 +29,7 @@ async function startServer(){
     console.log(error)
 }
 
-server.post("/participants", async (req,res)=>{
+app.post("/participants", async (req,res)=>{
    const {name} = req.body;
    const participantValidation = participantSchema.validate({name})
    const date = dayjs().format("hh:mm:ss")
@@ -56,7 +55,7 @@ server.post("/participants", async (req,res)=>{
         type: 'status', 
         time: date});
 
-        res.status(201).send("Usuario Criado")
+        res.status(201).send("Usuario Criado") //apagar a msg depois
    }catch(error){
     console.log(error);
     res.status(422).send("Ocorreu um erro no servidor")
@@ -64,7 +63,7 @@ server.post("/participants", async (req,res)=>{
 });
 
 const PORT = 5000;
-server.listen(PORT, ()=> console.log(`Servidor conectado a porta ${PORT}`));
+app.listen(PORT, ()=> console.log(`Servidor conectado a porta ${PORT}`));
 }
 
 startServer();
