@@ -41,8 +41,7 @@ app.post("/participants", async (req,res)=>{
 
    try{
     const checkExistingParticipant = await db
-    .collection("participants")
-    .findOne({name: name})
+    .collection("participants").findOne({name: name})
     if(checkExistingParticipant){
         return res.status(409).send("Nome já existente")
     }
@@ -55,12 +54,18 @@ app.post("/participants", async (req,res)=>{
         type: 'status', 
         time: date});
 
-        res.status(201).send("Usuario Criado") //apagar a msg depois
+        res.status(201).send("Usuario Criado"); //apagar a msg depois
    }catch(error){
     console.log(error);
     res.status(422).send("Ocorreu um erro no servidor")
    }
 });
+
+app.get("/participants",async (req, res) => {
+    const participantsList = await db
+    .collection("participants").find().toArray()
+    res.send(participantsList)
+})
 
 const PORT = 5000;
 app.listen(PORT, ()=> console.log(`Servidor conectado a porta ${PORT}`));
