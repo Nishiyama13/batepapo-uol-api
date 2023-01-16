@@ -102,10 +102,10 @@ app.post("/messages", async (req,res) =>{
 })
 
 app.get("/messages", async (req,res)=>{
-    const from = req.headers.from;
+    const {user} = req.headers;
     const limit = req.query.limit;
     const messageList = await db.collection("messages").find().toArray();
-    let messagesFilter = {$or: [{to: "Todos"},{from:from},{to:from}]};
+    let messagesFilter = {$or: [{to: "Todos"},{to:user},{from:user}]};
     let messages;
    
 try{
