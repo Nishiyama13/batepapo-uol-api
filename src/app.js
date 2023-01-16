@@ -10,7 +10,6 @@ dotenv.config()
 const app = express();
 app.use(cors());
 app.use(express.json());
-//const users = [];
 const Joi = joi
 
 const mongoClient = new MongoClient(process.env.DATABASE_URL);
@@ -18,6 +17,12 @@ let db ;
 
 const participantSchema = Joi.object({
     name:Joi.string().required()
+})
+
+const messageSchema = Joi.object({
+    to: Joi.string().required(),
+    text: Joi.string().required(),
+    type: Joi.string().valid("message","private_message").required()
 })
 
 async function startServer(){
@@ -31,20 +36,16 @@ async function startServer(){
 
 app.post("/participants", async (req,res)=>{
    const {name} = req.body;
-   const participantValidation = participantSchema.validate({name})
-   const date = dayjs().format("hh:mm:ss")
-   const lastStatus = Date.now()
+   const participantValidation = participantSchema.validate({name});
+   const date = dayjs().format("hh:mm:ss");
+   const lastStatus = Date.now();
 
-   if(participantValidation.error){
-    return res.status(422).send("Nome invalido")
-   }
+   if(participantValidation.error) return res.status(422).send("Nome invalido")
 
    try{
-    const checkExistingParticipant = await db
+    const checkExistingUser = await db
     .collection("participants").findOne({name: name})
-    if(checkExistingParticipant){
-        return res.status(409).send("Nome já existente")
-    }
+    if(checkExistingUser) return res.status(409).send("Nome já existente");
 
     await db.collection("participants").insertOne({name, lastStatus});
     await db.collection("messages").insertOne({
@@ -62,10 +63,45 @@ app.post("/participants", async (req,res)=>{
 });
 
 app.get("/participants",async (req, res) => {
-    const participantsList = await db
+   try{
+     const participantsList = await db
     .collection("participants").find().toArray()
     res.send(participantsList)
+   }
+   catch(error){
+    res.status(500).send("Houve algum erro com o banco de dados")
+   }
 })
+
+app.post("/messages", async (req,res) =>{
+    const {to, text,type} = req.body;
+    const from = req.headers.user;
+    const messageValidation = messageSchema.validate({to, text, type});
+    const time = dayjs(Date.now()).format("hh:mm:ss");
+
+    const checkUserOnline = await db.collection("participants").findOne({name: from});
+
+    if(checkUserOnline === undefined) return res.status(422).send("Usuário não encontrado, tente se conectar novamente");
+
+    if(messageValidation.error) return res.status(422).send("Mensagem inválida");
+
+    try{
+        await db.collection("messages").insertOne({
+            to,
+            text,
+            type,
+            from,
+            time
+        });
+        res.status(201).send("Mensagem enviada");
+    }
+    catch(error){
+        console.log(error);
+        res.status(422).send("Ocorreu um erro no servidor");
+    }
+})
+
+
 
 const PORT = 5000;
 app.listen(PORT, ()=> console.log(`Servidor conectado a porta ${PORT}`));
