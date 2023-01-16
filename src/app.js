@@ -104,7 +104,6 @@ app.post("/messages", async (req,res) =>{
 app.get("/messages", async (req,res)=>{
     const {user} = req.headers;
     const limit = req.query.limit;
-    const messageList = await db.collection("messages").find().toArray();
     let messagesFilter = {$or: [{to: "Todos"},{to:user},{from:user}]};
     let messages;
     const limitSchema = Joi.number().positive()
@@ -127,6 +126,23 @@ try{
     res.status(500).send("Houve algum erro com o banco de dados")
 }
 });
+
+app.post("/status", async(req,res) => {
+    const {user} = req.headers;
+    const currentTime = Date.now();
+
+    try{
+        const participant = await db.collection("participants").findOne({name:user})
+
+        if(!participant) return res.status(404).send("Usuario não encontrado")
+        await db.collection("participants").updateOne({name:user}, {$set:{lastStatus: currentTime}})
+        res.status(200).send("Usuario conectado")
+
+    }catch(error){
+        console.log(error);
+        res.status(500).send("Houve algum erro com o banco de dados")
+    }
+})
 
 
 const PORT = 5000;
