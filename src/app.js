@@ -81,7 +81,7 @@ app.post("/messages", async (req,res) =>{
 
     const checkUserOnline = await db.collection("participants").findOne({name: from});
 
-    if(checkUserOnline === undefined) return res.status(422).send("Usuário não encontrado, tente se conectar novamente");
+    if(!checkUserOnline) return res.status(422).send("Usuário não encontrado, tente se conectar novamente");
 
     if(messageValidation.error) return res.status(422).send("Mensagem inválida");
 
