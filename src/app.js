@@ -107,6 +107,11 @@ app.get("/messages", async (req,res)=>{
     const messageList = await db.collection("messages").find().toArray();
     let messagesFilter = {$or: [{to: "Todos"},{to:user},{from:user}]};
     let messages;
+    const limitSchema = Joi.number().positive()
+    const limitValidation = limitSchema.validate(limit)
+    if(limitValidation.error){
+        return res.status(422).send("limite invalido")
+    }
    
 try{
     if(!limit){
