@@ -147,11 +147,20 @@ app.post("/status", async(req,res) => {
 setInterval(async function removeInactiveUser(){
 const inactiveTimeLimit = 10*1000;
 const currentTime = Date.now();
+const formatTime = dayjs(currentTime).format("hh:mm:ss")
 
 const inactiveUserToRemove = await db.collection("participants").find({lastStatus: { $lt: currentTime - inactiveTimeLimit }}).toArray()
 
 for (const user of inactiveUserToRemove){
-    await db.collection("participants").deleteMany({ name:user.name})
+    await db.collection("participants").deleteOne({ name:user.name})
+    await db.collection("messages").insertOne({
+        from: user.name, 
+        to: 'Todos', 
+        text: 'sai da sala...', 
+        type: 'status', 
+        time: formatTime
+    })
+    res.status(201).send("Usuario Criado")
 }
 
 }, 15*1000);
