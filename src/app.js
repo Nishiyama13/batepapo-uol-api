@@ -144,6 +144,17 @@ app.post("/status", async(req,res) => {
     }
 })
 
+setInterval(async function removeInactiveUser(){
+const inactiveTimeLimit = 10*1000;
+const currentTime = Date.now();
+
+const inactiveUserToRemove = await db.collection("participants").find({lastStatus: { $lt: currentTime - inactiveTimeLimit }}).toArray()
+
+for (const user of inactiveUserToRemove){
+    await db.collection("participants").deleteMany({ name:user.name})
+}
+
+}, 15*1000);
 
 const PORT = 5000;
 app.listen(PORT, ()=> console.log(`Servidor conectado a porta ${PORT}`));
