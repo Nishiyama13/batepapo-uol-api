@@ -119,7 +119,7 @@ try{
       messages = await db.collection("messages").find(messagesFilter).sort({_id:-1}).limit(parseInt(limit)).toArray();
     }
 
-    res.status(200).send(messages.reverse());
+    res.status(200).send(messages); //messages.reverse()
 
 }catch(error){
     console.log(error);
