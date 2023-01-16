@@ -101,6 +101,27 @@ app.post("/messages", async (req,res) =>{
     }
 })
 
+app.get("/messages", async (req,res)=>{
+    const from = req.headers.from;
+    const limit = req.query.limit;
+    const messageList = await db.collection("messages").find().toArray();
+    let messagesFilter = {$or: [{to: "Todos"},{from:from},{to:from}]};
+    let messages;
+   
+try{
+    if(!limit){
+       messages = await db.collection("messages").find(messagesFilter).toArray();
+    }else{
+      messages = await db.collection("messages").find(messagesFilter).sort({_id:-1}).limit(parseInt(limit)).toArray();
+    }
+
+    res.status(200).send(messages);
+
+}catch(error){
+    console.log(error);
+    res.status(500).send("Houve algum erro com o banco de dados")
+}
+});
 
 
 const PORT = 5000;
